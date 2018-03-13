@@ -1,0 +1,17 @@
+<div id="videos-container" class="contents-container">
+  {{#each videos as |video|}}
+  <div class="video-card">
+  <a href="/videos/{{video._id}}">
+    <div class="video-title">
+      {{video.title}}
+    </div>
+  </a>
+  <iframe class="video-player"
+  src="{{video.url}}">
+  </iframe>
+  </div>
+  {{/each}}
+</div>
+<div id="navigation">
+  <a href="/videos/create" class="add-video-button">Add a video</a>
+</div>
