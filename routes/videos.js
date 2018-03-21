@@ -1,6 +1,13 @@
 const router = require('express').Router();
 const Video = require('../models/video');
 
+const buildAndValidateVideo = (request) => {
+  const {url, title, description} = request.body;
+  var video = Video({url, title, description});
+  video.validateSync();
+  return video;
+};
+
 router.get('/videos', async (req,res) => {
   const videos = await Video.find({});
   res.render('videos/index', {videos});
@@ -11,9 +18,7 @@ router.get('/videos/create', async (req, res) => {
 });
 
 router.post('/videos/create', async (req, res) => {
-  const {url, title, description} = req.body;
-  const newVideo = new Video({url, title, description});
-  newVideo.validateSync();
+  var newVideo = buildAndValidateVideo(req);
   if (newVideo.errors) {
     res.status(400).render('videos/create', {item: newVideo});
   } else {
@@ -35,13 +40,15 @@ router.get('/videos/:id/edit', async (req, res) => {
 
 router.post('/videos/:id/updates', async (req, res) => {
   const _id = req.params.id;
-  const {url, title, description} = req.body;
-  const updatedVideo = Video({_id, url, title, description});
-  updatedVideo.validateSync();
+  var updatedVideo = buildAndValidateVideo(req);
+  // Mongoose creates a new _id when converting an object to a db
+  // model so we must set the _id field back to the original value
+  updatedVideo._id = _id;
   if (updatedVideo.errors) {
     res.status(400).render(`videos/edit`, {item: updatedVideo});
   } else {
-    await Video.findByIdAndUpdate(_id, {url, title, description});
+    await Video.findByIdAndUpdate(_id,
+      {url: updatedVideo.url, title: updatedVideo.title, description: updatedVideo.description});
     res.redirect(`/videos/${_id}`);
   }
 });
